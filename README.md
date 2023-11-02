@@ -1,165 +1,73 @@
 [![CI](https://github.com/nogibjj/Jiechen_Li_Mini_6_MySQL/actions/workflows/ci.yml/badge.svg)](https://github.com/nogibjj/Jiechen_Li_Mini_6_MySQL/actions/workflows/ci.yml)
 
-## Jiechen_Li_Mini_6_MySQL
+# Jiechen_Li_Mini_10_PySpark
 
-### Purpose
+## Purpose
 
-* Design a complex SQL query involving joins, aggregation, and sorting
-* Provide an explanation for what the query is doing and the expected results
+* Use PySpark to perform data processing on a large dataset
+* Include at least one Spark SQL query and one data transformation
+* Provide an user guide for both PySpark setup and the query
 
-### Dataset
+## Dataset
 
-The dataset is sellcted from [DATA.GOV](https://catalog.data.gov/dataset/school-attendance-by-student-group-and-district-2021-2022/resource/d923f39c-c84c-4fa9-a252-c1f6b465bd55) in the United States.
-The dataset appears to represent attendance data for various student groups across different districts in Connecticut for the academic years 2021-2022, 2020-2021, and 2019-2020.
+This data comes from the [Global Historical Climatology Network](https://www.drought.gov/data-maps-tools/global-historical-climatology-network-ghcn), and is the actual raw data provided by [NOAA](https://www.noaa.gov/). Begin by unzipping the file and checking it's size -- it should come out to be about **4GB**, but will expand to about 12 GB in RAM, which means there's just no way most most of us can import this dataset into pandas and manipulate it directly and analysis in local IDE.
 
-### SQL Query
+## Connect to Azure
 
-The goal is to compare the attendance rates of the "All Students" group in the 2021-2022 academic year against the rates in the 2020-2021 academic year for each district. We want to find districts where the attendance rate increased, remained stable (with a variation of less than 1%), or decreased.
+### Step 1: Create an Azure Storage Account
 
-1. **Create Tables**
+1. **Sign in** to the Azure Portal.
+2. In the Azure portal, select **Create a resource**.
+3. Search for and select **Storage account**.
+4. On the **Create storage account** page, select our subscription and either create a new resource group or use an existing one.
+5. Enter a unique name for the storage account.
+6. Choose the location closest to me.
+7. Leave the other options to their default values (unless we have specific requirements).
+8. Click **Review + Create** and then **Create** once validation passes.
 
-```sql
-CREATE DATABASE School_Attendance;
-DEFAULT CHARACTER SET = 'utf8mb4';
-USE School_Attendance;
+### Step 2: Create a Blob Container
 
-CREATE TABLE
-    School_Attendance_Table (
-        District_code VARCHAR(255),
-        District_name VARCHAR(255),
-        Category VARCHAR(255),
-        Student_group VARCHAR(255),
-        `2021-2022_student_count_-_year_to_date` INT,
-        `2021-2022_attendance_rate_-_year_to_date` FLOAT,
-        `2020-2021_student_count` INT,
-        `2020-2021_attendance_rate` FLOAT,
-        `2019-2020_student_count` INT,
-        `2019-2020_attendance_rate` FLOAT,
-        Reporting_period DATE,
-        Date_update DATE
-    );
+1. Once the storage account is created, go to it in the Azure portal.
+2. In the overview page of the storage account, scroll to the **Blob service** section, then select **Containers**.
+3. Select the **+ Container** button to add a new container.
+4. Name the container and set the public access level according to our needs.
+5. Click **Create**.
 
-SET GLOBAL local_infile=1;
-show tables;
+### Step 3: Upload Dataset
 
-LOAD DATA
-    LOCAL INFILE '/Users/castnut/Desktop/706_Data_Engineering/mini_6/Jiechen_Li_Mini_6_External_Database/School_Attendance_by_Student_Group_and_District__2021-2022.csv' INTO
-TABLE
-    School_Attendance_Table FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+1. Go to the newly created container.
+2. Select the **Upload** button.
+3. Click the folder icon next to the **"files"** box or drag and drop your dataset files into the box.
+4. Click the **Advanced** tab if you want to upload to a subfolder within the container.
+5. Click **Upload**.
 
--- Creating the attendance_2021_2022 table
-CREATE TABLE
-    attendance_2021_2022 (
-        District_code VARCHAR(255),
-        District_name VARCHAR(255),
-        Category VARCHAR(255),
-        Student_group VARCHAR(255),
-        Student_count INT,
-        Attendance_rate FLOAT
-    );
+### Step 4: Create Azure Databricks
 
--- Inserting data into the attendance_2021_2022 table
+1. In the Azure portal, click on "Azure Databricks" and create a new Databricks workspace.
+2. Click on the "Notebook" button, and create a new compute cluster. Notebook is where we can write and execute our PySpark code. We can perform data transformations, write Spark SQL queries, visualize data, and document the process.
 
-INSERT INTO
-    attendance_2021_2022 (
-        District_code,
-        District_name,
-        Category,
-        Student_group,
-        Student_count,
-        Attendance_rate
-    )
-SELECT
-    District_code,
-    District_name,
-    Category,
-    student_group,
-    `2021-2022_student_count_-_year_to_date`,
-    `2021-2022_attendance_rate_-_year_to_date`
-FROM
-    `School_Attendance_Table`;
+### Step 5: Use PySpark with Azure Blob Storage
 
--- Creating the attendance_2020_2021 table
-CREATE TABLE
-    attendance_2020_2021 (
-        District_code VARCHAR(255),
-        District_name VARCHAR(255),
-        Category VARCHAR(255),
-        Student_group VARCHAR(255),
-        Student_count INT,
-        Attendance_rate FLOAT
-    );
+1. **Connect** Blob Storage to read the big csv file.
+2. Launch the **Databricks workspace**, and loaded the CSV big data into a PySpark DataFrame.
 
--- Inserting data into the attendance_2020_2021 table
-INSERT INTO
-    attendance_2020_2021 (
-        District_code,
-        District_name,
-        Category,
-        Student_group,
-        Student_count,
-        Attendance_rate
-    )
-SELECT
-    District_code,
-    District_name,
-    Category,
-    student_group,
-    `2020-2021_student_count`,
-    `2020-2021_attendance_rate`
-FROM
-    `School_Attendance_Table`;
+## PySpark Deliverable
 
-```
+1. [Mini_10_PySpark in Databricks Workplace](https://adb-8105252383820269.9.azuredatabricks.net/?o=8105252383820269#notebook/3928159747808780)
 
-2. **School Attendance Rate Difference**
+2. Please check ``Mini_10_PySpark_Databricks.pdf`` for detailed output.
 
-```sql
-WITH Comparison AS (
-        SELECT
-            a21.District_code,
-            a21.District_name,
-            a21.Attendance_rate AS rate_2021_2022,
-            a20.Attendance_rate AS rate_2020_2021, (
-                a21.Attendance_rate - a20.Attendance_rate
-            ) AS rate_difference
-        FROM
-            attendance_2021_2022 AS a21
-            JOIN attendance_2020_2021 AS a20 ON a21.District_code = a20.District_code
-        WHERE
-            a21.Student_group = 'All Students'
-            AND a20.Student_group = 'All Students'
-    )
-SELECT
-    District_code,
-    District_name,
-    CASE
-        WHEN rate_difference > 0.01 THEN 'Increased'
-        WHEN rate_difference BETWEEN -0.01 AND 0.01 THEN 'Stable'
-        ELSE 'Decreased'
-    END AS Attendance_trend,
-    rate_2021_2022,
-    rate_2020_2021
-FROM Comparison
-ORDER BY rate_difference DESC;
-```
+## Results
 
-### Explanation
+1. **Upoad the Big Data**
+<img decoding="async" src="upload_bigdata.png" width="85%"><br/>  
 
-In the WITH clause, I define a Common Table Expression (CTE) called Comparison to join the two tables (attendance_2021_2022 and attendance_2020_2021) based on the District code. This CTE filters the records for the "All Students" group and computes the difference in attendance rates between the two academic years.
+2. **Read with PySpark on big dataset stored in Azure Blob Storage**
+<img decoding="async" src="read_bigcsv.png" width="85%"><br/>
 
-In the main query, I use a CASE statement to categorize the attendance trend as 'Increased', 'Stable', or 'Decreased' based on the rate difference.
+3. **Spark SQL query and Data Transformation**
+<img decoding="async" src="SQL_trans.png" width="85%"><br/>
 
-The final results are ordered by "rate_difference" in descending order, meaning districts with the most significant increase in attendance rate will be shown first.
+## Reference
 
-### Results
-
-The result will be a list of districts, their attendance rates for the "All Students" group in the 2021-2022 and 2020-2021 academic years. The visualization of top 15 districts based on rate difference in attendance is as following:
-
-<img decoding="async" src="comparison_rates.png" width="85%">  
-
-Please check ``sql_results_plot.py`` for details.
-
-### Reference
-
-Please click <a href="https://github.com/nogibjj/Jiechen_Li_Mini_2_Pandas.git" target="_blank">here</a> to see the template of this repo.
+Please click <a href="https://github.com/nogibjj/Jiechen_Li_Mini_6_MySQL.git" target="_blank">here</a> to see the template of this repo.
