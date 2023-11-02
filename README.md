@@ -1,4 +1,4 @@
-[![CI](https://github.com/nogibjj/Jiechen_Li_Mini_6_MySQL/actions/workflows/ci.yml/badge.svg)](https://github.com/nogibjj/Jiechen_Li_Mini_6_MySQL/actions/workflows/ci.yml)
+[![CI](https://github.com/nogibjj/Jiechen_Li_Mini_10_PySpark/actions/workflows/ci.yml/badge.svg)](https://github.com/nogibjj/Jiechen_Li_Mini_10_PySpark/actions/workflows/ci.yml)
 
 # Jiechen_Li_Mini_10_PySpark
 
